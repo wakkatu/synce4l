@@ -58,10 +58,8 @@ static int ext_ql_msg_start_chain(struct synce_msg_ext_ql *ext_ql_msg)
 	return 0;
 }
 
-static int ext_ql_msg_update_chain(struct synce_port *port)
+static int ext_ql_msg_update_chain(struct synce_port *port, int rx_ext_tlv)
 {
-	int rx_ext_tlv = synce_port_ctrl_rx_ext_tlv(port->pc);
-
 	if (rx_ext_tlv == 1) {
 		/* if extended tlv came on best port just increase eEEC by one */
 		port->ext_ql_msg.cascaded_eEEcs++;
@@ -362,15 +360,22 @@ int synce_port_set_tx_ql_from_best_input(struct synce_port *port,
 	port->ql = rx_ql;
 
 	if (extended) {
-		ret = synce_port_ctrl_get_rx_ext_ql(best_p->pc,
-						    &rx_ext_ql_msg);
-		if (ret) {
-			pr_err("get ext rx QL failed on %s", best_p->name);
-			return ret;
+		int rx_ext_tlv = synce_port_ctrl_rx_ext_tlv(best_p->pc);
+
+		if (rx_ext_tlv) {
+			ret = synce_port_ctrl_get_rx_ext_ql(best_p->pc,
+							    &rx_ext_ql_msg);
+			if (ret) {
+				pr_err("get ext rx QL failed on %s", best_p->name);
+				return ret;
+			}
+			memcpy(&port->ext_ql_msg, &rx_ext_ql_msg,
+			       sizeof(port->ext_ql_msg));
+		} else {
+			memcpy(&port->ext_ql_msg, &port->ext_ql_msg_dnu,
+			       sizeof(port->ext_ql_msg));
 		}
-		memcpy(&port->ext_ql_msg, &rx_ext_ql_msg,
-		       sizeof(port->ext_ql_msg));
-		ret = ext_ql_msg_update_chain(port);
+		ret = ext_ql_msg_update_chain(port, rx_ext_tlv);
 		if (ret) {
 			pr_err("failed to update chain on %s",
 			       port->name);

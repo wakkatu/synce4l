@@ -740,7 +740,7 @@ err_attr:
 
 static uint16_t get_ql_priority(struct synce_port_ctrl *pc)
 {
-	if (pc->rx.cd.extended) {
+	if (pc->rx.cd.extended && pc->rx.ext_tlv_recvd) {
 		return QL_PRIORITY(pc->rx.cd.ql,
 				   pc->rx.cd.ext_ql.enhancedSsmCode);
 	} else {
