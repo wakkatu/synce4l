@@ -384,15 +384,15 @@ static void choose_best_source(struct synce_dev *dev)
 			pr_err("set best source failed on %s",
 				dev->name);
 		} else {
+			/* eec was invalidated we can now set new
+			 * best_source for further use
+			 */
+			dev->best_source = new_best;
 			/* if input source is changing
 			 * current input is invalid, send DNU and wait
 			 * for EEC being locked in further dev_step
 			 */
 			dev_update_ql(dev);
-			/* EEC was invalidated we can now set new
-			 * best_source for further use
-			 */
-			dev->best_source = new_best;
 		}
 	} else {
 		pr_info("clock source has not changed on %s", dev->name);
